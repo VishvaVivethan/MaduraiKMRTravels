@@ -187,10 +187,10 @@
                     <div class="col-lg-6 wow fadeIn" data-wow-delay="0.5s">
                         <div class="bg-primary rounded p-5">
                             <h4 class="text-white mb-4">CONTINUE CAR RESERVATION</h4>
-                            <form>
+                            <form id="car-rental-form">
                                 <div class="row g-3">
                                     <div class="col-12">
-                                        <select class="form-select" aria-label="Default select example">
+                                        <select class="form-select" name="car_type" aria-label="Default select example">
                                             <option selected>Select Your Car type</option>
                                             <option value="1">VW Golf VII</option>
                                             <option value="2">Audi A1 S-Line</option>
@@ -198,30 +198,33 @@
                                             <option value="4">BMW 320 ModernLine</option>
                                         </select>
                                     </div>
+                        
                                     <div class="col-12">
                                         <div class="input-group">
                                             <div class="d-flex align-items-center bg-light text-body rounded-start p-2">
                                                 <span class="fas fa-map-marker-alt"></span> <span class="ms-1">Pick Up</span>
                                             </div>
-                                            <input class="form-control" type="text" placeholder="Enter a City or Airport" aria-label="Enter a City or Airport">
+                                            <input class="form-control" name="pickup_location" type="text" placeholder="Enter a City or Airport" aria-label="Enter a City or Airport" required>
                                         </div>
                                     </div>
+                        
                                     <div class="col-12">
                                         <a href="#" class="text-start text-white d-block mb-2">Need a different drop-off location?</a>
                                         <div class="input-group">
                                             <div class="d-flex align-items-center bg-light text-body rounded-start p-2">
                                                 <span class="fas fa-map-marker-alt"></span><span class="ms-1">Drop off</span>
                                             </div>
-                                            <input class="form-control" type="text" placeholder="Enter a City or Airport" aria-label="Enter a City or Airport">
+                                            <input class="form-control" name="dropoff_location" type="text" placeholder="Enter a City or Airport" aria-label="Enter a City or Airport" required>
                                         </div>
                                     </div>
+                        
                                     <div class="col-12">
                                         <div class="input-group">
                                             <div class="d-flex align-items-center bg-light text-body rounded-start p-2">
                                                 <span class="fas fa-calendar-alt"></span><span class="ms-1">Pick Up</span>
                                             </div>
-                                            <input class="form-control" type="date">
-                                            <select class="form-select ms-3" aria-label="Default select example">
+                                            <input class="form-control" name="pickup_date" type="date" required>
+                                            <select class="form-select ms-3" name="pickup_time" aria-label="Default select example">
                                                 <option selected>12:00AM</option>
                                                 <option value="1">1:00AM</option>
                                                 <option value="2">2:00AM</option>
@@ -233,13 +236,14 @@
                                             </select>
                                         </div>
                                     </div>
+                        
                                     <div class="col-12">
                                         <div class="input-group">
                                             <div class="d-flex align-items-center bg-light text-body rounded-start p-2">
                                                 <span class="fas fa-calendar-alt"></span><span class="ms-1">Drop off</span>
                                             </div>
-                                            <input class="form-control" type="date">
-                                            <select class="form-select ms-3" aria-label="Default select example">
+                                            <input class="form-control" name="dropoff_date" type="date" required>
+                                            <select class="form-select ms-3" name="dropoff_time" aria-label="Default select example">
                                                 <option selected>12:00AM</option>
                                                 <option value="1">1:00AM</option>
                                                 <option value="2">2:00AM</option>
@@ -251,8 +255,15 @@
                                             </select>
                                         </div>
                                     </div>
+                                 
+                        
                                     <div class="col-12">
-                                        <button class="btn btn-light w-100 py-2">Book Now</button>
+                                        <button class="btn btn-light w-100 py-2" type="submit">Book Now</button>
+                                    </div>
+                        
+                                     <!-- Add a div to show the result message -->
+                                     <div class="col-12">
+                                        <div id="result-message" class="text-center text-white d-none"></div>
                                     </div>
                                 </div>
                             </form>
@@ -1012,5 +1023,57 @@
     <script src="js/main.js"></script>
     
 </body>
+  <!-- Include JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+      document.getElementById('car-rental-form').addEventListener('submit', function (event) {
+  event.preventDefault(); // Prevent the default form submission
+
+  const formData = new FormData(this);
+  const data = {};
+  formData.forEach((value, key) => {
+      data[key] = value;
+  });
+
+  // Send data to Web3Forms API
+  fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+          access_key: '8f18d3ef-8975-4c32-b732-278633115fc8', // Your Web3Forms access key
+          ...data,
+      }),
+  })
+  .then(response => response.json())
+  .then(result => {
+      // Display the success message inside the result-message div
+      const resultMessageDiv = document.getElementById('result-message');
+      resultMessageDiv.textContent = 'Booking successful!';
+      resultMessageDiv.classList.remove('d-none'); // Show the div
+
+      console.log(result);
+
+      // Send WhatsApp Message using Twilio API or another service (This example assumes Twilio for sending WhatsApp messages)
+      const phoneNumber = encodeURIComponent(data.phone);
+      const message = encodeURIComponent(`Booking details: ${data.car_type}, ${data.pickup_location}, ${data.dropoff_location}, Pick Up Date: ${data.pickup_date}, Drop Off Date: ${data.dropoff_date}`);
+      const whatsappAPIUrl = `https://api.whatsapp.com/send?+919994474309&text=${message}`;
+
+      // Open WhatsApp link (this will open WhatsApp on mobile or desktop)
+      window.open(whatsappAPIUrl, '_blank');
+  })
+  .catch(error => {
+      // Display an error message if something goes wrong
+      const resultMessageDiv = document.getElementById('result-message');
+      resultMessageDiv.textContent = 'Something went wrong. Please try again.';
+      resultMessageDiv.classList.remove('d-none'); // Show the div
+      resultMessageDiv.classList.add('text-danger'); // Make the text red for errors
+      console.error('Error:', error);
+  });
+});
+
+  </script>
 
 </html>
