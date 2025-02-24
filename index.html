@@ -187,7 +187,7 @@
                     <div class="col-lg-6 wow fadeIn" data-wow-delay="0.5s">
                         <div class="bg-primary rounded p-5">
                             <h4 class="text-white mb-4">CONTINUE CAR RESERVATION</h4>
-                            <form id="car-rental-form">
+                            <form id="car-rental-form" class="needs-validation" novalidate>
                                 <div class="row g-3">
                                     <!-- Car Type Select -->
                                     <div class="col-12">
@@ -204,63 +204,68 @@
                                             <option value="Innova A/C">Innova A/C</option>
                                             <option value="Innova Crysta">Innova Crysta</option>
                                         </select>
+                                        <div class="invalid-feedback">Please select a car type.</div>
                                     </div>
-                        
+                            
                                     <!-- Pickup Location -->
                                     <div class="col-12">
-                                        <div class="input-group">
+                                        <div class="input-group has-validation">
                                             <div class="d-flex align-items-center bg-light text-body rounded-start p-2">
                                                 <span class="fas fa-map-marker-alt"></span><span class="ms-1">Pick Up</span>
                                             </div>
                                             <input class="form-control" name="pickup_location" type="text" placeholder="Enter a City or Airport" required>
+                                            <div class="invalid-feedback">Please enter a pickup location.</div>
                                         </div>
                                     </div>
-                        
+                            
                                     <!-- Dropoff Location -->
                                     <div class="col-12">
-                                        <div class="input-group">
+                                        <div class="input-group has-validation">
                                             <div class="d-flex align-items-center bg-light text-body rounded-start p-2">
                                                 <span class="fas fa-map-marker-alt"></span><span class="ms-1">Drop off</span>
                                             </div>
                                             <input class="form-control" name="dropoff_location" type="text" placeholder="Enter a City or Airport" required>
+                                            <div class="invalid-feedback">Please enter a dropoff location.</div>
                                         </div>
                                     </div>
-                        
+                            
                                     <!-- Pickup Date and Time -->
                                     <div class="col-12">
-                                        <div class="input-group">
+                                        <div class="input-group has-validation">
                                             <div class="d-flex align-items-center bg-light text-body rounded-start p-2">
                                                 <span class="fas fa-calendar-alt"></span><span class="ms-1">Pick Up</span>
                                             </div>
-                                            <input class="form-control" name="pickup_date" type="date" required>
+                                            <input class="form-control" name="pickup_date" type="date" min="<?php echo date('Y-m-d'); ?>" required>
                                             <input class="form-control ms-3" name="pickup_time" type="text" placeholder="HH:MM" aria-label="Enter time" required>
-                                            <select class="form-select ms-3" name="pickup_am_pm" aria-label="AM/PM select">
+                                            <select class="form-select ms-3" name="pickup_am_pm" aria-label="AM/PM select" required>
                                                 <option selected>AM</option>
                                                 <option value="PM">PM</option>
                                             </select>
+                                            <div class="invalid-feedback">Please select a valid future date and time for pickup.</div>
                                         </div>
                                     </div>
-                        
+                            
                                     <!-- Drop-off Date and Time -->
                                     <div class="col-12">
-                                        <div class="input-group">
+                                        <div class="input-group has-validation">
                                             <div class="d-flex align-items-center bg-light text-body rounded-start p-2">
                                                 <span class="fas fa-calendar-alt"></span><span class="ms-1">Drop off</span>
                                             </div>
-                                            <input class="form-control" name="dropoff_date" type="date" required>
+                                            <input class="form-control" name="dropoff_date" type="date" min="<?php echo date('Y-m-d'); ?>" required>
                                             <input class="form-control ms-3" name="dropoff_time" type="text" placeholder="HH:MM" aria-label="Enter time" required>
-                                            <select class="form-select ms-3" name="dropoff_am_pm" aria-label="AM/PM select">
+                                            <select class="form-select ms-3" name="dropoff_am_pm" aria-label="AM/PM select" required>
                                                 <option selected>AM</option>
                                                 <option value="PM">PM</option>
                                             </select>
+                                            <div class="invalid-feedback">Please select a valid future date and time for dropoff.</div>
                                         </div>
                                     </div>
-                        
+                            
                                     <!-- Submit Button -->
                                     <div class="col-12">
                                         <button class="btn btn-light w-100 py-2" type="submit">Book Now</button>
                                     </div>
-                        
+                            
                                     <!-- Result Message -->
                                     <div class="col-12">
                                         <div id="result-message" class="text-center text-white d-none"></div>
@@ -1026,83 +1031,114 @@
   <!-- Include JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
-  <script>
-    // Form submission handler
-    document.getElementById('car-rental-form').addEventListener('submit', function (event) {
-        event.preventDefault(); // Prevent the default form submission
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+    // Set the minimum date for pickup and dropoff to today
+    const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
+    document.querySelector('input[name="pickup_date"]').setAttribute('min', today);
+    document.querySelector('input[name="dropoff_date"]').setAttribute('min', today);
 
-        const formData = new FormData(this);
+    // Bootstrap form validation
+    const form = document.getElementById('car-rental-form');
+    form.addEventListener('submit', function (event) {
+        event.preventDefault(); // Prevent default form submission
+        event.stopPropagation();
+
+        // Check if the form is valid
+        if (!form.checkValidity()) {
+            form.classList.add('was-validated');
+            return;
+        }
+
+        // Get form data
+        const formData = new FormData(form);
         const data = {};
         formData.forEach((value, key) => {
             data[key] = value;
         });
 
-        // Get the pickup and dropoff time with AM/PM information
+        // Combine time and AM/PM for pickup and dropoff
         const pickupTime = `${data.pickup_time} ${data.pickup_am_pm}`;
         const dropoffTime = `${data.dropoff_time} ${data.dropoff_am_pm}`;
 
-        // Include the times in the form data to send them with the request
+        // Include the times in the form data
         data.pickup_time = pickupTime;
         data.dropoff_time = dropoffTime;
 
-        // Convert the dates into a comparable format (e.g., YYYY-MM-DD)
+        // Convert dates to Date objects for comparison
         const pickupDate = new Date(`${data.pickup_date}T${data.pickup_time}`);
         const dropoffDate = new Date(`${data.dropoff_date}T${data.dropoff_time}`);
+        const currentDate = new Date();
 
-        // Validate dates
-        if (pickupDate >= dropoffDate) {
+        // Validate Pick Up Date
+        if (pickupDate <= currentDate) {
             const resultMessageDiv = document.getElementById('result-message');
-            resultMessageDiv.textContent = 'Dropoff date must be after pickup date.';
+            resultMessageDiv.textContent = 'Please select a future date for Pick Up.';
             resultMessageDiv.classList.remove('d-none');
             resultMessageDiv.classList.add('text-danger');
             return;
         }
 
-        // Send data to Web3Forms API
+        // Validate Drop-off Date
+        if (pickupDate >= dropoffDate) {
+            const resultMessageDiv = document.getElementById('result-message');
+            resultMessageDiv.textContent = 'Drop-off date must be after Pick Up date.';
+            resultMessageDiv.classList.remove('d-none');
+            resultMessageDiv.classList.add('text-danger');
+            return;
+        }
+
+        // If all validations pass, submit the form data
         fetch('https://api.web3forms.com/submit', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                access_key: '8f18d3ef-8975-4c32-b732-278633115fc8', // Your Web3Forms access key
+                access_key: '8f18d3ef-8975-4c32-b732-278633115fc8', // Replace with your Web3Forms access key
                 ...data,
             }),
         })
         .then(response => response.json())
         .then(result => {
-            // Display the success message inside the result-message div
+            // Display success message
             const resultMessageDiv = document.getElementById('result-message');
             resultMessageDiv.textContent = 'Booking successful!';
-            resultMessageDiv.classList.remove('d-none'); // Show the div
-            resultMessageDiv.classList.add('text-success'); // Make the text green for success
+            resultMessageDiv.classList.remove('d-none');
+            resultMessageDiv.classList.add('text-success');
 
             console.log(result);
 
-            // Send WhatsApp Message with booking details
-            const message = encodeURIComponent(`Booking details: 
-                Car Type: ${data.car_type}, 
-                Pickup Location: ${data.pickup_location}, 
-                Dropoff Location: ${data.dropoff_location}, 
-                Pick Up Date: ${data.pickup_date} ${pickupTime}, 
-                Drop Off Date: ${data.dropoff_date} ${dropoffTime}`);
-                
-            const whatsappAPIUrl = `https://wa.me/919994474309?text=${message}`;
-
-            // Open WhatsApp link (this will open WhatsApp on mobile or desktop)
-            window.open(whatsappAPIUrl, '_blank');
+            // Send WhatsApp message with booking details
+            const message = encodeURIComponent(
+                `Booking details:\n` +
+                `Car Type: ${data.car_type}\n` +
+                `Pickup Location: ${data.pickup_location}\n` +
+                `Dropoff Location: ${data.dropoff_location}\n` +
+                `Pick Up Date: ${data.pickup_date} ${pickupTime}\n` +
+                `Drop Off Date: ${data.dropoff_date} ${dropoffTime}`
+            );
+            const whatsappAPIUrl = `https://wa.me/919994474309?text=${message}`; // Replace with your WhatsApp number
+            window.open(whatsappAPIUrl, '_blank'); // Open WhatsApp link
         })
         .catch(error => {
-            // Display an error message if something goes wrong
+            // Display error message
             const resultMessageDiv = document.getElementById('result-message');
             resultMessageDiv.textContent = 'Something went wrong. Please try again.';
-            resultMessageDiv.classList.remove('d-none'); // Show the div
-            resultMessageDiv.classList.add('text-danger'); // Make the text red for errors
+            resultMessageDiv.classList.remove('d-none');
+            resultMessageDiv.classList.add('text-danger');
             console.error('Error:', error);
         });
     });
-</script>
 
+    // Add Bootstrap validation on form fields
+    form.addEventListener('input', function (event) {
+        if (event.target.tagName === 'INPUT' || event.target.tagName === 'SELECT') {
+            event.target.classList.remove('is-invalid');
+        }
+    });
+});
+</script>
 
 
 </html>
