@@ -206,7 +206,14 @@
                                         </select>
                                         <div class="invalid-feedback">Please select a car type.</div>
                                     </div>
-                            
+                             <!-- Pickup Location -->
+                             <div class="col-12">
+                                <div class="input-group has-validation">
+                                    <input class="form-control" name="Phone_num" type="number" placeholder="Enter a Phone Number" required>
+                                    <div class="invalid-feedback">Please enter a Phone Number</div>
+                                </div>
+                            </div>
+
                                     <!-- Pickup Location -->
                                     <div class="col-12">
                                         <div class="input-group has-validation">
@@ -1112,7 +1119,9 @@
             // Send WhatsApp message with booking details
             const message = encodeURIComponent(
                 `Booking details:\n` +
+                `Phone_num:\n`+
                 `Car Type: ${data.car_type}\n` +
+                `Phone Num:${data.Phone_num}\n`+
                 `Pickup Location: ${data.pickup_location}\n` +
                 `Dropoff Location: ${data.dropoff_location}\n` +
                 `Pick Up Date: ${data.pickup_date} ${pickupTime}\n` +
